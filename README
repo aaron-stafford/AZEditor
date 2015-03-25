@@ -5,3 +5,17 @@ scxml in to C++ code.
 The AZEditor was orginally a project on google code:
 (https://code.google.com/p/scxmlgui/). It has been exported here so that it can
 be modified specifically for AZEgine's needs. And because ... well ... git :)
+
+Building the project
+====================
+
+In the root of the project, simply run:
+
+> ant
+
+Launching the editor
+====================
+
+The editor can be launched from the command line with the following command:
+
+> java -jar extra/fsm-editor.jar

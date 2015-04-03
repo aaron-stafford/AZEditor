@@ -1,8 +1,8 @@
-/* 
+/*
  * Copyright (c) 2005, David Benson
- * 
- * All rights reserved. 
- * 
+ *
+ * All rights reserved.
+ *
  * This file is licensed under the JGraph software license, a copy of which
  * will have been provided to you in the file LICENSE at the root of your
  * installation directory. If you are unable to locate this file please
@@ -18,11 +18,11 @@ package com.mxgraph.layout.hierarchical.stage;
 public interface mxHierarchicalLayoutStage
 {
 
-	/**
-	 * Takes the graph detail and configuration information within the facade
-	 * and creates the resulting laid out graph within that facade for further
-	 * use.
-	 */
-	public void execute(Object parent);
+  /**
+   * Takes the graph detail and configuration information within the facade
+   * and creates the resulting laid out graph within that facade for further
+   * use.
+   */
+  public void execute(Object parent);
 
 }

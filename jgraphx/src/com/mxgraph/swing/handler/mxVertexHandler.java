@@ -24,401 +24,390 @@ import com.mxgraph.view.mxCellState;
 import com.mxgraph.view.mxGraph;
 
 /**
- * 
+ *
  */
 public class mxVertexHandler extends mxCellHandler
 {
 
-	/**
-	 * 
-	 */
-	public static Cursor[] CURSORS = new Cursor[] {
-			new Cursor(Cursor.NW_RESIZE_CURSOR),
-			new Cursor(Cursor.N_RESIZE_CURSOR),
-			new Cursor(Cursor.NE_RESIZE_CURSOR),
-			new Cursor(Cursor.W_RESIZE_CURSOR),
-			new Cursor(Cursor.E_RESIZE_CURSOR),
-			new Cursor(Cursor.SW_RESIZE_CURSOR),
-			new Cursor(Cursor.S_RESIZE_CURSOR),
-			new Cursor(Cursor.SE_RESIZE_CURSOR), new Cursor(Cursor.MOVE_CURSOR) };
+  /**
+   *
+   */
+  public static Cursor[] CURSORS = new Cursor[]
+  {
+    new Cursor(Cursor.NW_RESIZE_CURSOR),
+    new Cursor(Cursor.N_RESIZE_CURSOR),
+    new Cursor(Cursor.NE_RESIZE_CURSOR),
+    new Cursor(Cursor.W_RESIZE_CURSOR),
+    new Cursor(Cursor.E_RESIZE_CURSOR),
+    new Cursor(Cursor.SW_RESIZE_CURSOR),
+    new Cursor(Cursor.S_RESIZE_CURSOR),
+    new Cursor(Cursor.SE_RESIZE_CURSOR), new Cursor(Cursor.MOVE_CURSOR)
+  };
 
-	/**
-	 * Workaround for alt-key-state not correct in mouseReleased.
-	 */
-	protected transient boolean gridEnabledEvent = false;
+  /**
+   * Workaround for alt-key-state not correct in mouseReleased.
+   */
+  protected transient boolean gridEnabledEvent = false;
 
-	/**
-	 * Workaround for shift-key-state not correct in mouseReleased.
-	 */
-	protected transient boolean constrainedEvent = false;
+  /**
+   * Workaround for shift-key-state not correct in mouseReleased.
+   */
+  protected transient boolean constrainedEvent = false;
 
-	/**
-	 * 
-	 * @param graphComponent
-	 * @param state
-	 */
-	public mxVertexHandler(mxGraphComponent graphComponent, mxCellState state)
-	{
-		super(graphComponent, state);
-	}
+  /**
+   *
+   * @param graphComponent
+   * @param state
+   */
+  public mxVertexHandler(mxGraphComponent graphComponent, mxCellState state)
+  {
+    super(graphComponent, state);
+  }
 
-	/**
-	 * 
-	 */
-	protected Rectangle[] createHandles()
-	{
-		Rectangle[] h = null;
+  /**
+   *
+   */
+  protected Rectangle[] createHandles()
+  {
+    Rectangle[] h = null;
 
-		if (graphComponent.getGraph().isCellResizable(getState().getCell()))
-		{
-			Rectangle bounds = getState().getRectangle();
-			int half = mxConstants.HANDLE_SIZE / 2;
+    if (graphComponent.getGraph().isCellResizable(getState().getCell()))
+    {
+      Rectangle bounds = getState().getRectangle();
+      int half = mxConstants.HANDLE_SIZE / 2;
+      int left = bounds.x - half;
+      int top = bounds.y - half;
+      int w2 = bounds.x + (bounds.width / 2) - half;
+      int h2 = bounds.y + (bounds.height / 2) - half;
+      int right = bounds.x + bounds.width - half;
+      int bottom = bounds.y + bounds.height - half;
+      h = new Rectangle[9];
+      int s = mxConstants.HANDLE_SIZE;
+      h[0] = new Rectangle(left, top, s, s);
+      h[1] = new Rectangle(w2, top, s, s);
+      h[2] = new Rectangle(right, top, s, s);
+      h[3] = new Rectangle(left, h2, s, s);
+      h[4] = new Rectangle(right, h2, s, s);
+      h[5] = new Rectangle(left, bottom, s, s);
+      h[6] = new Rectangle(w2, bottom, s, s);
+      h[7] = new Rectangle(right, bottom, s, s);
+    }
+    else
+    {
+      h = new Rectangle[1];
+    }
 
-			int left = bounds.x - half;
-			int top = bounds.y - half;
+    int s = mxConstants.LABEL_HANDLE_SIZE;
+    mxRectangle bounds = state.getLabelBounds();
+    h[h.length - 1] = new Rectangle((int)(bounds.getX()
+                                          + bounds.getWidth() / 2 - s), (int)(bounds.getY()
+                                              + bounds.getHeight() / 2 - s), 2 * s, 2 * s);
+    return h;
+  }
 
-			int w2 = bounds.x + (bounds.width / 2) - half;
-			int h2 = bounds.y + (bounds.height / 2) - half;
+  /**
+   *
+   */
+  protected JComponent createPreview()
+  {
+    JPanel preview = new JPanel();
+    preview.setBorder(mxConstants.PREVIEW_BORDER);
+    preview.setOpaque(false);
+    preview.setVisible(false);
+    return preview;
+  }
 
-			int right = bounds.x + bounds.width - half;
-			int bottom = bounds.y + bounds.height - half;
+  /**
+   *
+   */
+  public void mouseDragged(MouseEvent e)
+  {
+    if (!e.isConsumed() && first != null)
+    {
+      //System.out.println("mouse dragged in mxVertexHandler");
+      gridEnabledEvent = graphComponent.isGridEnabledEvent(e);
+      constrainedEvent = graphComponent.isConstrainedEvent(e);
+      double dx = e.getX() - first.x;
+      double dy = e.getY() - first.y;
 
-			h = new Rectangle[9];
+      if (isLabel(index))
+      {
+        mxPoint pt = new mxPoint(e.getPoint());
 
-			int s = mxConstants.HANDLE_SIZE;
-			h[0] = new Rectangle(left, top, s, s);
-			h[1] = new Rectangle(w2, top, s, s);
-			h[2] = new Rectangle(right, top, s, s);
-			h[3] = new Rectangle(left, h2, s, s);
-			h[4] = new Rectangle(right, h2, s, s);
-			h[5] = new Rectangle(left, bottom, s, s);
-			h[6] = new Rectangle(w2, bottom, s, s);
-			h[7] = new Rectangle(right, bottom, s, s);
-		}
-		else
-		{
-			h = new Rectangle[1];
-		}
+        if (gridEnabledEvent)
+        {
+          pt = graphComponent.snapScaledPoint(pt);
+        }
 
-		int s = mxConstants.LABEL_HANDLE_SIZE;
-		mxRectangle bounds = state.getLabelBounds();
-		h[h.length - 1] = new Rectangle((int) (bounds.getX()
-				+ bounds.getWidth() / 2 - s), (int) (bounds.getY()
-				+ bounds.getHeight() / 2 - s), 2 * s, 2 * s);
+        int idx = (int) Math.round(pt.getX() - first.x);
+        int idy = (int) Math.round(pt.getY() - first.y);
 
-		return h;
-	}
+        if (constrainedEvent)
+        {
+          if (Math.abs(idx) > Math.abs(idy))
+          {
+            idy = 0;
+          }
+          else
+          {
+            idx = 0;
+          }
+        }
 
-	/**
-	 * 
-	 */
-	protected JComponent createPreview()
-	{
-		JPanel preview = new JPanel();
-		preview.setBorder(mxConstants.PREVIEW_BORDER);
-		preview.setOpaque(false);
-		preview.setVisible(false);
+        Rectangle rect = state.getLabelBounds().getRectangle();
+        rect.translate(idx, idy);
+        preview.setBounds(rect);
+      }
+      else
+      {
+        mxGraph graph = graphComponent.getGraph();
+        double scale = graph.getView().getScale();
 
-		return preview;
-	}
+        if (gridEnabledEvent)
+        {
+          dx = graph.snap(dx / scale) * scale;
+          dy = graph.snap(dy / scale) * scale;
+        }
 
-	/**
-	 * 
-	 */
-	public void mouseDragged(MouseEvent e)
-	{
-		if (!e.isConsumed() && first != null)
-		{
-			//System.out.println("mouse dragged in mxVertexHandler");
+        mxRectangle bounds = union(getState(), dx, dy, index);
+        bounds.setWidth(bounds.getWidth() + 1);
+        bounds.setHeight(bounds.getHeight() + 1);
+        preview.setBounds(bounds.getRectangle());
+      }
 
-			gridEnabledEvent = graphComponent.isGridEnabledEvent(e);
-			constrainedEvent = graphComponent.isConstrainedEvent(e);
+      if (!preview.isVisible() && graphComponent.isSignificant(dx, dy))
+      {
+        preview.setVisible(true);
+      }
 
-			double dx = e.getX() - first.x;
-			double dy = e.getY() - first.y;
+      e.consume();
+    }
+  }
 
-			if (isLabel(index))
-			{
-				mxPoint pt = new mxPoint(e.getPoint());
+  /**
+   *
+   */
+  public void mouseReleased(MouseEvent e)
+  {
+    if (!e.isConsumed() && first != null)
+    {
+      if (preview != null && preview.isVisible())
+      {
+        if (isLabel(index))
+        {
+          moveLabel(e);
+        }
+        else
+        {
+          resizeCell(e);
+        }
+      }
 
-				if (gridEnabledEvent)
-				{
-					pt = graphComponent.snapScaledPoint(pt);
-				}
+      e.consume();
+    }
 
-				int idx = (int) Math.round(pt.getX() - first.x);
-				int idy = (int) Math.round(pt.getY() - first.y);
+    super.mouseReleased(e);
+  }
 
-				if (constrainedEvent)
-				{
-					if (Math.abs(idx) > Math.abs(idy))
-					{
-						idy = 0;
-					}
-					else
-					{
-						idx = 0;
-					}
-				}
+  /**
+   *
+   */
+  protected void moveLabel(MouseEvent e)
+  {
+    mxGraph graph = graphComponent.getGraph();
+    mxGeometry geometry = graph.getModel().getGeometry(state.getCell());
 
-				Rectangle rect = state.getLabelBounds().getRectangle();
-				rect.translate(idx, idy);
-				preview.setBounds(rect);
-			}
-			else
-			{
-				mxGraph graph = graphComponent.getGraph();
-				double scale = graph.getView().getScale();
+    if (geometry != null)
+    {
+      double scale = graph.getView().getScale();
+      mxPoint pt = new mxPoint(e.getPoint());
 
-				if (gridEnabledEvent)
-				{
-					dx = graph.snap(dx / scale) * scale;
-					dy = graph.snap(dy / scale) * scale;
-				}
+      if (gridEnabledEvent)
+      {
+        pt = graphComponent.snapScaledPoint(pt);
+      }
 
-				mxRectangle bounds = union(getState(), dx, dy, index);
-				bounds.setWidth(bounds.getWidth() + 1);
-				bounds.setHeight(bounds.getHeight() + 1);
-				preview.setBounds(bounds.getRectangle());
-			}
+      double dx = (pt.getX() - first.x) / scale;
+      double dy = (pt.getY() - first.y) / scale;
 
-			if (!preview.isVisible() && graphComponent.isSignificant(dx, dy))
-			{
-				preview.setVisible(true);
-			}
+      if (constrainedEvent)
+      {
+        if (Math.abs(dx) > Math.abs(dy))
+        {
+          dy = 0;
+        }
+        else
+        {
+          dx = 0;
+        }
+      }
 
-			e.consume();
-		}
-	}
+      mxPoint offset = geometry.getOffset();
 
-	/**
-	 * 
-	 */
-	public void mouseReleased(MouseEvent e)
-	{
-		if (!e.isConsumed() && first != null)
-		{
-			if (preview != null && preview.isVisible())
-			{
-				if (isLabel(index))
-				{
-					moveLabel(e);
-				}
-				else
-				{
-					resizeCell(e);
-				}
-			}
+      if (offset == null)
+      {
+        offset = new mxPoint();
+      }
 
-			e.consume();
-		}
+      dx += offset.getX();
+      dy += offset.getY();
+      geometry = (mxGeometry) geometry.clone();
+      geometry.setOffset(new mxPoint(Math.round(dx), Math.round(dy)));
+      graph.getModel().setGeometry(state.getCell(), geometry);
+    }
+  }
 
-		super.mouseReleased(e);
-	}
+  /**
+   *
+   * @param e
+   */
+  protected void resizeCell(MouseEvent e)
+  {
+    mxGraph graph = graphComponent.getGraph();
+    double scale = graph.getView().getScale();
+    Object cell = state.getCell();
+    mxGeometry geometry = graph.getModel().getGeometry(cell);
 
-	/**
-	 * 
-	 */
-	protected void moveLabel(MouseEvent e)
-	{
-		mxGraph graph = graphComponent.getGraph();
-		mxGeometry geometry = graph.getModel().getGeometry(state.getCell());
+    if (geometry != null)
+    {
+      double dx = (e.getX() - first.x) / scale;
+      double dy = (e.getY() - first.y) / scale;
 
-		if (geometry != null)
-		{
-			double scale = graph.getView().getScale();
-			mxPoint pt = new mxPoint(e.getPoint());
+      if (isLabel(index))
+      {
+        geometry = (mxGeometry) geometry.clone();
 
-			if (gridEnabledEvent)
-			{
-				pt = graphComponent.snapScaledPoint(pt);
-			}
+        if (geometry.getOffset() != null)
+        {
+          dx += geometry.getOffset().getX();
+          dy += geometry.getOffset().getY();
+        }
 
-			double dx = (pt.getX() - first.x) / scale;
-			double dy = (pt.getY() - first.y) / scale;
+        if (gridEnabledEvent)
+        {
+          dx = graph.snap(dx);
+          dy = graph.snap(dy);
+        }
 
-			if (constrainedEvent)
-			{
-				if (Math.abs(dx) > Math.abs(dy))
-				{
-					dy = 0;
-				}
-				else
-				{
-					dx = 0;
-				}
-			}
+        geometry.setOffset(new mxPoint(dx, dy));
+        graph.getModel().setGeometry(cell, geometry);
+      }
+      else
+      {
+        mxRectangle bounds = union(geometry, dx, dy, index);
+        Rectangle rect = bounds.getRectangle();
 
-			mxPoint offset = geometry.getOffset();
+        // Snaps new bounds to grid (unscaled)
+        if (gridEnabledEvent)
+        {
+          int x = (int) graph.snap(rect.x);
+          int y = (int) graph.snap(rect.y);
+          rect.width = (int) graph.snap(rect.width - x + rect.x);
+          rect.height = (int) graph.snap(rect.height - y + rect.y);
+          rect.x = x;
+          rect.y = y;
+        }
 
-			if (offset == null)
-			{
-				offset = new mxPoint();
-			}
+        graph.resizeCell(cell, new mxRectangle(rect));
+      }
+    }
+  }
 
-			dx += offset.getX();
-			dy += offset.getY();
+  /**
+   *
+   */
+  protected Cursor getCursor(MouseEvent e, int index)
+  {
+    if (index >= 0 && index <= CURSORS.length)
+    {
+      return CURSORS[index];
+    }
 
-			geometry = (mxGeometry) geometry.clone();
-			geometry.setOffset(new mxPoint(Math.round(dx), Math.round(dy)));
-			graph.getModel().setGeometry(state.getCell(), geometry);
-		}
-	}
+    return null;
+  }
 
-	/**
-	 * 
-	 * @param e
-	 */
-	protected void resizeCell(MouseEvent e)
-	{
-		mxGraph graph = graphComponent.getGraph();
-		double scale = graph.getView().getScale();
+  /**
+   *
+   * @param bounds
+   * @param dx
+   * @param dy
+   * @param index
+   */
+  protected mxRectangle union(mxRectangle bounds, double dx, double dy,
+                              int index)
+  {
+    double left = bounds.getX();
+    double right = left + bounds.getWidth();
+    double top = bounds.getY();
+    double bottom = top + bounds.getHeight();
 
-		Object cell = state.getCell();
-		mxGeometry geometry = graph.getModel().getGeometry(cell);
+    if (index > 4 /* Bottom Row */)
+    {
+      bottom = bottom + dy;
+    }
+    else if (index < 3 /* Top Row */)
+    {
+      top = top + dy;
+    }
 
-		if (geometry != null)
-		{
-			double dx = (e.getX() - first.x) / scale;
-			double dy = (e.getY() - first.y) / scale;
+    if (index == 0 || index == 3 || index == 5 /* Left */)
+    {
+      left += dx;
+    }
+    else if (index == 2 || index == 4 || index == 7 /* Right */)
+    {
+      right += dx;
+    }
 
-			if (isLabel(index))
-			{
-				geometry = (mxGeometry) geometry.clone();
+    double width = right - left;
+    double height = bottom - top;
 
-				if (geometry.getOffset() != null)
-				{
-					dx += geometry.getOffset().getX();
-					dy += geometry.getOffset().getY();
-				}
+    // Flips over left side
+    if (width < 0)
+    {
+      left += width;
+      width = Math.abs(width);
+    }
 
-				if (gridEnabledEvent)
-				{
-					dx = graph.snap(dx);
-					dy = graph.snap(dy);
-				}
+    // Flips over top side
+    if (height < 0)
+    {
+      top += height;
+      height = Math.abs(height);
+    }
 
-				geometry.setOffset(new mxPoint(dx, dy));
-				graph.getModel().setGeometry(cell, geometry);
-			}
-			else
-			{
-				mxRectangle bounds = union(geometry, dx, dy, index);
-				Rectangle rect = bounds.getRectangle();
+    return new mxRectangle(left, top, width, height);
+  }
 
-				// Snaps new bounds to grid (unscaled)
-				if (gridEnabledEvent)
-				{
-					int x = (int) graph.snap(rect.x);
-					int y = (int) graph.snap(rect.y);
-					rect.width = (int) graph.snap(rect.width - x + rect.x);
-					rect.height = (int) graph.snap(rect.height - y + rect.y);
-					rect.x = x;
-					rect.y = y;
-				}
+  /**
+   *
+   */
+  protected Color getSelectionColor()
+  {
+    return mxConstants.VERTEX_SELECTION_COLOR;
+  }
 
-				graph.resizeCell(cell, new mxRectangle(rect));
-			}
-		}
-	}
+  /**
+   *
+   */
+  protected Stroke getSelectionStroke()
+  {
+    return mxConstants.VERTEX_SELECTION_STROKE;
+  }
 
-	/**
-	 * 
-	 */
-	protected Cursor getCursor(MouseEvent e, int index)
-	{
-		if (index >= 0 && index <= CURSORS.length)
-		{
-			return CURSORS[index];
-		}
-
-		return null;
-	}
-
-	/**
-	 * 
-	 * @param bounds
-	 * @param dx
-	 * @param dy
-	 * @param index
-	 */
-	protected mxRectangle union(mxRectangle bounds, double dx, double dy,
-			int index)
-	{
-		double left = bounds.getX();
-		double right = left + bounds.getWidth();
-		double top = bounds.getY();
-		double bottom = top + bounds.getHeight();
-
-		if (index > 4 /* Bottom Row */)
-		{
-			bottom = bottom + dy;
-		}
-		else if (index < 3 /* Top Row */)
-		{
-			top = top + dy;
-		}
-
-		if (index == 0 || index == 3 || index == 5 /* Left */)
-		{
-			left += dx;
-		}
-		else if (index == 2 || index == 4 || index == 7 /* Right */)
-		{
-			right += dx;
-		}
-
-		double width = right - left;
-		double height = bottom - top;
-
-		// Flips over left side
-		if (width < 0)
-		{
-			left += width;
-			width = Math.abs(width);
-		}
-
-		// Flips over top side
-		if (height < 0)
-		{
-			top += height;
-			height = Math.abs(height);
-		}
-
-		return new mxRectangle(left, top, width, height);
-	}
-	
-	/**
-	 * 
-	 */
-	protected Color getSelectionColor()
-	{
-		return mxConstants.VERTEX_SELECTION_COLOR;
-	}
-	
-	/**
-	 * 
-	 */
-	protected Stroke getSelectionStroke()
-	{
-		return mxConstants.VERTEX_SELECTION_STROKE;
-	}
-
-	/**
-	 * 
-	 */
-	public void paint(Graphics g)
-	{
-		Rectangle bounds = getState().getRectangle();
-		Graphics2D g2 = (Graphics2D) g;
-		
-		Stroke stroke = g2.getStroke();
-		g2.setStroke(getSelectionStroke());
-		g.setColor(getSelectionColor());
-		g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
-		g2.setStroke(stroke);
-
-		super.paint(g);
-	}
+  /**
+   *
+   */
+  public void paint(Graphics g)
+  {
+    Rectangle bounds = getState().getRectangle();
+    Graphics2D g2 = (Graphics2D) g;
+    Stroke stroke = g2.getStroke();
+    g2.setStroke(getSelectionStroke());
+    g.setColor(getSelectionColor());
+    g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+    g2.setStroke(stroke);
+    super.paint(g);
+  }
 
 }

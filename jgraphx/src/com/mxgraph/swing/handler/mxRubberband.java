@@ -28,318 +28,310 @@ import com.mxgraph.util.mxUtils;
 public class mxRubberband implements MouseListener, MouseMotionListener
 {
 
-	/**
-	 * Defines the border color for drawing the rubberband selection.
-	 * Default is mxConstants.RUBBERBAND_BORDERCOLOR.
-	 */
-	protected Color borderColor = mxConstants.RUBBERBAND_BORDERCOLOR;
+  /**
+   * Defines the border color for drawing the rubberband selection.
+   * Default is mxConstants.RUBBERBAND_BORDERCOLOR.
+   */
+  protected Color borderColor = mxConstants.RUBBERBAND_BORDERCOLOR;
 
-	/**
-	 * Defines the color to be used for filling the rubberband selection.
-	 * Default is mxConstants.RUBBERBAND_FILLCOLOR.
-	 */
-	protected Color fillColor = mxConstants.RUBBERBAND_FILLCOLOR;
+  /**
+   * Defines the color to be used for filling the rubberband selection.
+   * Default is mxConstants.RUBBERBAND_FILLCOLOR.
+   */
+  protected Color fillColor = mxConstants.RUBBERBAND_FILLCOLOR;
 
-	/**
-	 * Reference to the enclosing graph container.
-	 */
-	protected mxGraphComponent graphComponent;
+  /**
+   * Reference to the enclosing graph container.
+   */
+  protected mxGraphComponent graphComponent;
 
-	/**
-	 * Specifies if the rubberband is enabled.
-	 */
-	protected boolean enabled = true;
+  /**
+   * Specifies if the rubberband is enabled.
+   */
+  protected boolean enabled = true;
 
-	/**
-	 * Holds the point where the selection has started.
-	 */
-	protected transient Point first;
+  /**
+   * Holds the point where the selection has started.
+   */
+  protected transient Point first;
 
-	/**
-	 * Holds the current rubberband bounds.
-	 */
-	protected transient Rectangle bounds;
+  /**
+   * Holds the current rubberband bounds.
+   */
+  protected transient Rectangle bounds;
 
-	/**
-	 * Constructs a new rubberband selection for the given graph component.
-	 * 
-	 * @param graphComponent Component that contains the rubberband.
-	 */
-	public mxRubberband(final mxGraphComponent graphComponent)
-	{
-		this.graphComponent = graphComponent;
+  /**
+   * Constructs a new rubberband selection for the given graph component.
+   *
+   * @param graphComponent Component that contains the rubberband.
+   */
+  public mxRubberband(final mxGraphComponent graphComponent)
+  {
+    this.graphComponent = graphComponent;
+    // Adds the required listeners
+    graphComponent.getGraphControl().addMouseListener(this);
+    graphComponent.getGraphControl().addMouseMotionListener(this);
+    graphComponent.addListener(mxEvent.AFTER_PAINT,
+                               new mxIEventListener()
+    {
+      public void invoke(Object source, mxEventObject evt)
+      {
+        paintRubberband((Graphics) evt.getProperty("g"));
+      }
+    });
+    // Handles escape keystrokes
+    graphComponent.addKeyListener(new KeyAdapter()
+    {
+      /**
+       *
+       * @param e
+       * @return
+       */
+      public void keyPressed(KeyEvent e)
+      {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE
+            && graphComponent.isEscapeEnabled())
+        {
+          reset();
+        }
+      }
+    });
+    // LATER: Add destroy method for removing above listeners
+  }
 
-		// Adds the required listeners
-		graphComponent.getGraphControl().addMouseListener(this);
-		graphComponent.getGraphControl().addMouseMotionListener(this);
+  /**
+   * Returns the enabled state.
+   */
+  public boolean isEnabled()
+  {
+    return enabled;
+  }
 
-		graphComponent.addListener(mxEvent.AFTER_PAINT,
-				new mxIEventListener()
-				{
+  /**
+   * Sets the enabled state.
+   */
+  public void setEnabled(boolean enabled)
+  {
+    this.enabled = enabled;
+  }
 
-					public void invoke(Object source, mxEventObject evt)
-					{
-						paintRubberband((Graphics) evt.getProperty("g"));
-					}
+  /**
+   * Returns the border color.
+   */
+  public Color getBorderColor()
+  {
+    return borderColor;
+  }
 
-				});
+  /**
+   * Sets the border color.
+   */
+  public void setBorderColor(Color value)
+  {
+    borderColor = value;
+  }
 
-		// Handles escape keystrokes
-		graphComponent.addKeyListener(new KeyAdapter()
-		{
-			/**
-			 * 
-			 * @param e
-			 * @return
-			 */
-			public void keyPressed(KeyEvent e)
-			{
-				if (e.getKeyCode() == KeyEvent.VK_ESCAPE
-						&& graphComponent.isEscapeEnabled())
-				{
-					reset();
-				}
-			}
-		});
+  /**
+   * Returns the fill color.
+   */
+  public Color getFillColor()
+  {
+    return fillColor;
+  }
 
-		// LATER: Add destroy method for removing above listeners
-	}
+  /**
+   * Sets the fill color.
+   */
+  public void setFillColor(Color value)
+  {
+    fillColor = value;
+  }
 
-	/**
-	 * Returns the enabled state.
-	 */
-	public boolean isEnabled()
-	{
-		return enabled;
-	}
+  /**
+   * Returns true if the given event should start the rubberband selection.
+   */
+  public boolean isRubberbandTrigger(MouseEvent e)
+  {
+    return true;
+  }
 
-	/**
-	 * Sets the enabled state.
-	 */
-	public void setEnabled(boolean enabled)
-	{
-		this.enabled = enabled;
-	}
+  /**
+   * Starts the rubberband selection at the given point.
+   */
+  public void start(Point point)
+  {
+    first = point;
+    bounds = new Rectangle(first);
+  }
 
-	/**
-	 * Returns the border color.
-	 */
-	public Color getBorderColor()
-	{
-		return borderColor;
-	}
+  /**
+   * Resets the rubberband selection without carrying out the selection.
+   */
+  public void reset()
+  {
+    first = null;
 
-	/**
-	 * Sets the border color.
-	 */
-	public void setBorderColor(Color value)
-	{
-		borderColor = value;
-	}
+    if (bounds != null)
+    {
+      graphComponent.getGraphControl().repaint(bounds);
+      bounds = null;
+    }
+  }
 
-	/**
-	 * Returns the fill color.
-	 */
-	public Color getFillColor()
-	{
-		return fillColor;
-	}
+  /**
+   *
+   * @param rect
+   * @param e
+   */
+  public Object[] select(Rectangle rect, MouseEvent e)
+  {
+    return graphComponent.selectRegion(rect, e);
+  }
 
-	/**
-	 * Sets the fill color.
-	 */
-	public void setFillColor(Color value)
-	{
-		fillColor = value;
-	}
+  /**
+   *
+   */
+  public void paintRubberband(Graphics g)
+  {
+    if (first != null && bounds != null
+        && graphComponent.isSignificant(bounds.width, bounds.height))
+    {
+      Rectangle rect = new Rectangle(bounds);
+      g.setColor(fillColor);
+      mxUtils.fillClippedRect(g, rect.x, rect.y, rect.width, rect.height);
+      g.setColor(borderColor);
+      rect.width -= 1;
+      rect.height -= 1;
+      g.drawRect(rect.x, rect.y, rect.width, rect.height);
+    }
+  }
 
-	/**
-	 * Returns true if the given event should start the rubberband selection.
-	 */
-	public boolean isRubberbandTrigger(MouseEvent e)
-	{
-		return true;
-	}
+  /**
+   *
+   */
+  public void mousePressed(MouseEvent e)
+  {
+    if (!e.isConsumed() && isEnabled() && isRubberbandTrigger(e)
+        && !e.isPopupTrigger())
+    {
+      start(e.getPoint());
+      e.consume();
+    }
+  }
 
-	/**
-	 * Starts the rubberband selection at the given point.
-	 */
-	public void start(Point point)
-	{
-		first = point;
-		bounds = new Rectangle(first);
-	}
+  /**
+   *
+   */
+  public void mouseDragged(MouseEvent e)
+  {
+    if (!e.isConsumed() && first != null)
+    {
+      Rectangle oldBounds = new Rectangle(bounds);
+      bounds = new Rectangle(first);
+      bounds.add(e.getPoint());
 
-	/**
-	 * Resets the rubberband selection without carrying out the selection.
-	 */
-	public void reset()
-	{
-		first = null;
+      if (graphComponent.isSignificant(bounds.width, bounds.height))
+      {
+        mxGraphControl control = graphComponent.getGraphControl();
+        // Repaints exact difference between old and new bounds
+        Rectangle union = new Rectangle(oldBounds);
+        union.add(bounds);
 
-		if (bounds != null)
-		{
-			graphComponent.getGraphControl().repaint(bounds);
-			bounds = null;
-		}
-	}
+        if (bounds.x != oldBounds.x)
+        {
+          int maxleft = (int) Math.max(bounds.x, oldBounds.x);
+          Rectangle tmp = new Rectangle(union.x - 1, union.y, maxleft
+                                        - union.x + 2, union.height);
+          control.repaint(tmp);
+        }
 
-	/**
-	 * 
-	 * @param rect
-	 * @param e
-	 */
-	public Object[] select(Rectangle rect, MouseEvent e)
-	{
-		return graphComponent.selectRegion(rect, e);
-	}
+        if (bounds.x + bounds.width != oldBounds.x + oldBounds.width)
+        {
+          int minright = (int) Math.min(bounds.x + bounds.width,
+                                        oldBounds.x + oldBounds.width);
+          Rectangle tmp = new Rectangle(minright - 1, union.y,
+                                        union.x + union.width - minright + 1, union.height);
+          control.repaint(tmp);
+        }
 
-	/**
-	 * 
-	 */
-	public void paintRubberband(Graphics g)
-	{
-		if (first != null && bounds != null
-				&& graphComponent.isSignificant(bounds.width, bounds.height))
-		{
-			Rectangle rect = new Rectangle(bounds);
-			g.setColor(fillColor);
-			mxUtils.fillClippedRect(g, rect.x, rect.y, rect.width, rect.height);
-			g.setColor(borderColor);
-			rect.width -= 1;
-			rect.height -= 1;
-			g.drawRect(rect.x, rect.y, rect.width, rect.height);
-		}
-	}
+        if (bounds.y != oldBounds.y)
+        {
+          int maxtop = (int) Math.max(bounds.y, oldBounds.y);
+          Rectangle tmp = new Rectangle(union.x, union.y - 1,
+                                        union.width, maxtop - union.y + 2);
+          control.repaint(tmp);
+        }
 
-	/**
-	 * 
-	 */
-	public void mousePressed(MouseEvent e)
-	{
-		if (!e.isConsumed() && isEnabled() && isRubberbandTrigger(e)
-				&& !e.isPopupTrigger())
-		{
-			start(e.getPoint());
-			e.consume();
-		}
-	}
+        if (bounds.y + bounds.height != oldBounds.y + oldBounds.height)
+        {
+          int minbottom = (int) Math.min(bounds.y + bounds.height,
+                                         oldBounds.y + oldBounds.height);
+          Rectangle tmp = new Rectangle(union.x, minbottom - 1,
+                                        union.width, union.y + union.height - minbottom + 1);
+          control.repaint(tmp);
+        }
 
-	/**
-	 * 
-	 */
-	public void mouseDragged(MouseEvent e)
-	{
-		if (!e.isConsumed() && first != null)
-		{
-			Rectangle oldBounds = new Rectangle(bounds);
-			bounds = new Rectangle(first);
-			bounds.add(e.getPoint());
+        if (!graphComponent.isToggleEvent(e)
+            && !graphComponent.getGraph().isSelectionEmpty())
+        {
+          graphComponent.getGraph().clearSelection();
+        }
+      }
 
-			if (graphComponent.isSignificant(bounds.width, bounds.height))
-			{
-				mxGraphControl control = graphComponent.getGraphControl();
+      e.consume();
+    }
+  }
 
-				// Repaints exact difference between old and new bounds
-				Rectangle union = new Rectangle(oldBounds);
-				union.add(bounds);
+  /**
+   *
+   */
+  public void mouseReleased(MouseEvent e)
+  {
+    Rectangle rect = bounds;
+    reset();
 
-				if (bounds.x != oldBounds.x)
-				{
-					int maxleft = (int) Math.max(bounds.x, oldBounds.x);
-					Rectangle tmp = new Rectangle(union.x - 1, union.y, maxleft
-							- union.x + 2, union.height);
-					control.repaint(tmp);
-				}
+    if (!e.isConsumed() && rect != null
+        && graphComponent.isSignificant(rect.width, rect.height))
+    {
+      select(rect, e);
+      e.consume();
+    }
+  }
 
-				if (bounds.x + bounds.width != oldBounds.x + oldBounds.width)
-				{
-					int minright = (int) Math.min(bounds.x + bounds.width,
-							oldBounds.x + oldBounds.width);
-					Rectangle tmp = new Rectangle(minright - 1, union.y,
-							union.x + union.width - minright + 1, union.height);
-					control.repaint(tmp);
-				}
+  /*
+   * (non-Javadoc)
+   * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
+   */
+  public void mouseClicked(MouseEvent arg0)
+  {
+    // empty
+  }
 
-				if (bounds.y != oldBounds.y)
-				{
-					int maxtop = (int) Math.max(bounds.y, oldBounds.y);
-					Rectangle tmp = new Rectangle(union.x, union.y - 1,
-							union.width, maxtop - union.y + 2);
-					control.repaint(tmp);
-				}
+  /*
+   * (non-Javadoc)
+   * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
+   */
+  public void mouseEntered(MouseEvent arg0)
+  {
+    // empty
+  }
 
-				if (bounds.y + bounds.height != oldBounds.y + oldBounds.height)
-				{
-					int minbottom = (int) Math.min(bounds.y + bounds.height,
-							oldBounds.y + oldBounds.height);
-					Rectangle tmp = new Rectangle(union.x, minbottom - 1,
-							union.width, union.y + union.height - minbottom + 1);
-					control.repaint(tmp);
-				}
+  /*
+   * (non-Javadoc)
+   * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
+   */
+  public void mouseExited(MouseEvent arg0)
+  {
+    // empty
+  }
 
-				if (!graphComponent.isToggleEvent(e)
-						&& !graphComponent.getGraph().isSelectionEmpty())
-				{
-					graphComponent.getGraph().clearSelection();
-				}
-			}
-
-			e.consume();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	public void mouseReleased(MouseEvent e)
-	{
-		Rectangle rect = bounds;
-		reset();
-
-		if (!e.isConsumed() && rect != null
-				&& graphComponent.isSignificant(rect.width, rect.height))
-		{
-			select(rect, e);
-			e.consume();
-		}
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-	 */
-	public void mouseClicked(MouseEvent arg0)
-	{
-		// empty
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
-	 */
-	public void mouseEntered(MouseEvent arg0)
-	{
-		// empty
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
-	 */
-	public void mouseExited(MouseEvent arg0)
-	{
-		// empty
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see java.awt.event.MouseMotionListener#mouseMoved(java.awt.event.MouseEvent)
-	 */
-	public void mouseMoved(MouseEvent arg0)
-	{
-		// empty
-	}
+  /*
+   * (non-Javadoc)
+   * @see java.awt.event.MouseMotionListener#mouseMoved(java.awt.event.MouseEvent)
+   */
+  public void mouseMoved(MouseEvent arg0)
+  {
+    // empty
+  }
 
 }

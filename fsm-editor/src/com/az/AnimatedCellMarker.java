@@ -12,7 +12,7 @@ import com.mxgraph.util.mxEventObject;
 import com.mxgraph.util.mxEvent;
 
 /**
- * 
+ *
  */
 public class AnimatedCellMarker extends mxCellMarker
 {
@@ -50,7 +50,7 @@ public class AnimatedCellMarker extends mxCellMarker
   {
     return unmarking;
   }
-  
+
   protected void setUnmarking(boolean unmarking)
   {
     this.unmarking = unmarking;
@@ -74,6 +74,7 @@ public class AnimatedCellMarker extends mxCellMarker
     if (state != markedState || color != currentColor)
     {
       currentColor = color;
+
       if (state != null && currentColor != null)
       {
         markedState = state;
@@ -84,7 +85,7 @@ public class AnimatedCellMarker extends mxCellMarker
         unmark();
       }
     }
-    else if(state == markedState && unmarking)
+    else if (state == markedState && unmarking)
     {
       unmark();
     }
@@ -99,14 +100,16 @@ public class AnimatedCellMarker extends mxCellMarker
   {
     if (getParent() != null)
     {
-      if(unmarking)
+      if (unmarking)
       {
-        if(validState != null)
+        if (validState != null)
         {
           effectThread.restartEffect();
         }
+
         return;
       }
+
       unmarking = true;
       effectThread = new CellMarkerEffectThread(this);
       eventSource.fireEvent(new mxEventObject(mxEvent.MARK));
@@ -123,7 +126,8 @@ public class AnimatedCellMarker extends mxCellMarker
     if (markedState != null && currentColor != null)
     {
       ((Graphics2D) g).setStroke(DEFAULT_STROKE);
-      if(unmarking)
+
+      if (unmarking)
       {
         g.setColor(unmarkingColor);
       }
@@ -135,17 +139,18 @@ public class AnimatedCellMarker extends mxCellMarker
       if (markedState.getAbsolutePointCount() > 0)
       {
         Point last = markedState.getAbsolutePoint(0).getPoint();
+
         for (int i = 1; i < markedState.getAbsolutePointCount(); i++)
         {
           Point current = markedState.getAbsolutePoint(i).getPoint();
           g.drawLine(last.x - getX(), last.y - getY(), current.x
-          		- getX(), current.y - getY());
+                     - getX(), current.y - getY());
           last = current;
         }
       }
       else
       {
-      	g.drawRect(1, 1, getWidth() - 3, getHeight() - 3);
+        g.drawRect(1, 1, getWidth() - 3, getHeight() - 3);
       }
     }
   }

@@ -34,14 +34,15 @@ public class CellMarkerEffectThread extends Thread
    */
   public void run()
   {
-   while(keepGoing)
-   {
+    while (keepGoing)
+    {
       try
       {
-        if(cellMarker != null)
+        if (cellMarker != null)
         {
           long currentTime = System.currentTimeMillis();
-          if(endTime > currentTime)
+
+          if (endTime > currentTime)
           {
             long effectLifeSpan = currentTime - startTime;
             this.percentComplete = 1.f - ((float)effectLifeSpan / (float)effectDuration);
@@ -51,13 +52,14 @@ public class CellMarkerEffectThread extends Thread
           else
           {
             keepGoing = false;
-			cellMarker.setVisible(false);
-			cellMarker.getParent().remove(cellMarker);
+            cellMarker.setVisible(false);
+            cellMarker.getParent().remove(cellMarker);
             cellMarker.setMarkedState(null);
             cellMarker.setUnmarking(false);
             cellMarker = null;
           }
         }
+
         Thread.sleep(100);
       }
       catch (Exception e)

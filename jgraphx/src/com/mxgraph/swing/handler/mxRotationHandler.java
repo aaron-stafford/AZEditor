@@ -8,8 +8,9 @@ import com.mxgraph.view.mxCellState;
  */
 public class mxRotationHandler extends mxCellHandler
 {
-	public mxRotationHandler(mxGraphComponent graphComponent, mxCellState state) {
-		super(graphComponent, state);
-		// TODO Auto-generated constructor stub
-	}
+  public mxRotationHandler(mxGraphComponent graphComponent, mxCellState state)
+  {
+    super(graphComponent, state);
+    // TODO Auto-generated constructor stub
+  }
 }

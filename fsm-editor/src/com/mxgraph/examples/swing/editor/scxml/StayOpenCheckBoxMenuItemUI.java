@@ -5,9 +5,11 @@ package com.mxgraph.examples.swing.editor.scxml;
 import javax.swing.MenuSelectionManager;
 import javax.swing.plaf.basic.BasicCheckBoxMenuItemUI;
 
-class StayOpenCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
-	@Override
-	protected void doClick(MenuSelectionManager msm) {
-		menuItem.doClick(0);
-	}
+class StayOpenCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI
+{
+  @Override
+  protected void doClick(MenuSelectionManager msm)
+  {
+    menuItem.doClick(0);
+  }
 }

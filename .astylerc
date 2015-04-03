@@ -1,0 +1,10 @@
+mode=java
+indent=spaces=2
+style=allman
+break-blocks
+pad-oper
+pad-header
+unpad-paren
+add-brackets
+convert-tabs
+lineend=linux

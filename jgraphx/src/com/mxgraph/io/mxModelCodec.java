@@ -20,107 +20,105 @@ import com.mxgraph.model.mxICell;
 public class mxModelCodec extends mxObjectCodec
 {
 
-	/**
-	 * Constructs a new model codec.
-	 */
-	public mxModelCodec()
-	{
-		this(new mxGraphModel());
-	}
+  /**
+   * Constructs a new model codec.
+   */
+  public mxModelCodec()
+  {
+    this(new mxGraphModel());
+  }
 
-	/**
-	 * Constructs a new model codec for the given template.
-	 */
-	public mxModelCodec(Object template)
-	{
-		this(template, null, null, null);
-	}
+  /**
+   * Constructs a new model codec for the given template.
+   */
+  public mxModelCodec(Object template)
+  {
+    this(template, null, null, null);
+  }
 
-	/**
-	 * Constructs a new model codec for the given arguments.
-	 */
-	public mxModelCodec(Object template, String[] exclude, String[] idrefs,
-			Map<String, String> mapping)
-	{
-		super(template, exclude, idrefs, mapping);
-	}
+  /**
+   * Constructs a new model codec for the given arguments.
+   */
+  public mxModelCodec(Object template, String[] exclude, String[] idrefs,
+                      Map<String, String> mapping)
+  {
+    super(template, exclude, idrefs, mapping);
+  }
 
-	/**
-	 * Encode the given mxGraphModel by writing a (flat) XML sequence
-	 * of cell nodes as produced by the mxCellCodec. The sequence is
-	 * wrapped-up in a node with the name root.
-	 */
-	public Node encode(mxCodec enc, Object obj)
-	{
-		Node node = null;
+  /**
+   * Encode the given mxGraphModel by writing a (flat) XML sequence
+   * of cell nodes as produced by the mxCellCodec. The sequence is
+   * wrapped-up in a node with the name root.
+   */
+  public Node encode(mxCodec enc, Object obj)
+  {
+    Node node = null;
 
-		if (obj instanceof mxGraphModel)
-		{
-			mxGraphModel model = (mxGraphModel) obj;
-			String name = mxCodecRegistry.getName(obj);
+    if (obj instanceof mxGraphModel)
+    {
+      mxGraphModel model = (mxGraphModel) obj;
+      String name = mxCodecRegistry.getName(obj);
+      node = enc.document.createElement(name);
+      Node rootNode = enc.document.createElement("root");
+      enc.encodeCell((mxICell) model.getRoot(), rootNode, true);
+      node.appendChild(rootNode);
+    }
 
-			node = enc.document.createElement(name);
-			Node rootNode = enc.document.createElement("root");
+    return node;
+  }
 
-			enc.encodeCell((mxICell) model.getRoot(), rootNode, true);
-			node.appendChild(rootNode);
-		}
+  /**
+   * Reads the cells into the graph model. All cells are children of the root
+   * element in the node.
+   */
+  public Node beforeDecode(mxCodec dec, Node node, Object into)
+  {
+    if (node instanceof Element)
+    {
+      Element elt = (Element) node;
+      mxGraphModel model = null;
 
-		return node;
-	}
+      if (into instanceof mxGraphModel)
+      {
+        model = (mxGraphModel) into;
+      }
+      else
+      {
+        model = new mxGraphModel();
+      }
 
-	/**
-	 * Reads the cells into the graph model. All cells are children of the root
-	 * element in the node.
-	 */
-	public Node beforeDecode(mxCodec dec, Node node, Object into)
-	{
-		if (node instanceof Element)
-		{
-			Element elt = (Element) node;
-			mxGraphModel model = null;
+      // Reads the cells into the graph model. All cells
+      // are children of the root element in the node.
+      Node root = elt.getElementsByTagName("root").item(0);
+      mxICell rootCell = null;
 
-			if (into instanceof mxGraphModel)
-			{
-				model = (mxGraphModel) into;
-			}
-			else
-			{
-				model = new mxGraphModel();
-			}
+      if (root != null)
+      {
+        Node tmp = root.getFirstChild();
 
-			// Reads the cells into the graph model. All cells
-			// are children of the root element in the node.
-			Node root = elt.getElementsByTagName("root").item(0);
-			mxICell rootCell = null;
+        while (tmp != null)
+        {
+          mxICell cell = dec.decodeCell(tmp, true);
 
-			if (root != null)
-			{
-				Node tmp = root.getFirstChild();
+          if (cell != null && cell.getParent() == null)
+          {
+            rootCell = cell;
+          }
 
-				while (tmp != null)
-				{
-					mxICell cell = dec.decodeCell(tmp, true);
+          tmp = tmp.getNextSibling();
+        }
 
-					if (cell != null && cell.getParent() == null)
-					{
-						rootCell = cell;
-					}
+        root.getParentNode().removeChild(root);
+      }
 
-					tmp = tmp.getNextSibling();
-				}
+      // Sets the root on the model if one has been decoded
+      if (rootCell != null)
+      {
+        model.setRoot(rootCell);
+      }
+    }
 
-				root.getParentNode().removeChild(root);
-			}
-
-			// Sets the root on the model if one has been decoded
-			if (rootCell != null)
-			{
-				model.setRoot(rootCell);
-			}
-		}
-
-		return node;
-	}
+    return node;
+  }
 
 }

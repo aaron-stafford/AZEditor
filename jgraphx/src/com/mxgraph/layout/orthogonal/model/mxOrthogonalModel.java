@@ -7,12 +7,12 @@ package com.mxgraph.layout.orthogonal.model;
 import com.mxgraph.view.mxGraph;
 
 /**
- * A custom graph model 
+ * A custom graph model
  */
 public class mxOrthogonalModel
 {
-   public mxOrthogonalModel(mxGraph graph)
-   {
-      // 
-   }
+  public mxOrthogonalModel(mxGraph graph)
+  {
+    //
+  }
 }

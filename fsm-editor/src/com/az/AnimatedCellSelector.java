@@ -24,7 +24,7 @@ public class AnimatedCellSelector extends CellSelector
    * Constructor just calls the super constructor and keeps a references to a
    * view variables that are needed in the overridden method below.
    */
-  public AnimatedCellSelector(final mxGraphComponent gc,final boolean withScroll)
+  public AnimatedCellSelector(final mxGraphComponent gc, final boolean withScroll)
   {
     super(gc, withScroll);
     this.gc = gc;
@@ -40,16 +40,18 @@ public class AnimatedCellSelector extends CellSelector
   @Override
   public void selectCell(mxCell c)
   {
-    if (c != null) 
+    if (c != null)
     {
       mxCellMarker thisCellSelector = this.currentSelectedCells.get(c);
       mxCellState state = this.view.getState(c);
+
       if (thisCellSelector == null)
       {
         thisCellSelector = new AnimatedCellMarker(gc);
-        this.currentSelectedCells.put(c,thisCellSelector);
+        this.currentSelectedCells.put(c, thisCellSelector);
         thisCellSelector.process(state, thisCellSelector.getMarkerColor(null, state, true), true);
         thisCellSelector.mark();
+
         if (this.withScroll)
         {
           this.gc.scrollCellToVisible(c, true);
@@ -57,8 +59,8 @@ public class AnimatedCellSelector extends CellSelector
       }
       else
       {
-      	thisCellSelector.process(state, thisCellSelector.getMarkerColor(null, state, true), true);
-      	thisCellSelector.mark();
+        thisCellSelector.process(state, thisCellSelector.getMarkerColor(null, state, true), true);
+        thisCellSelector.mark();
       }
     }
   }

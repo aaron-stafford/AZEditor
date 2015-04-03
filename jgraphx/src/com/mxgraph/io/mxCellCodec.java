@@ -20,201 +20,199 @@ import com.mxgraph.model.mxCell;
 public class mxCellCodec extends mxObjectCodec
 {
 
-	/**
-	 * Constructs a new cell codec.
-	 */
-	public mxCellCodec()
-	{
-		this(new mxCell(), null, new String[] { "parent", "source", "target" },
-				null);
-	}
+  /**
+   * Constructs a new cell codec.
+   */
+  public mxCellCodec()
+  {
+    this(new mxCell(), null, new String[] { "parent", "source", "target" },
+         null);
+  }
 
-	/**
-	 * Constructs a new cell codec for the given template.
-	 */
-	public mxCellCodec(Object template)
-	{
-		this(template, null, null, null);
-	}
+  /**
+   * Constructs a new cell codec for the given template.
+   */
+  public mxCellCodec(Object template)
+  {
+    this(template, null, null, null);
+  }
 
-	/**
-	 * Constructs a new cell codec for the given arguments.
-	 */
-	public mxCellCodec(Object template, String[] exclude, String[] idrefs,
-			Map<String, String> mapping)
-	{
-		super(template, exclude, idrefs, mapping);
-	}
+  /**
+   * Constructs a new cell codec for the given arguments.
+   */
+  public mxCellCodec(Object template, String[] exclude, String[] idrefs,
+                     Map<String, String> mapping)
+  {
+    super(template, exclude, idrefs, mapping);
+  }
 
-	/**
-	 * Excludes user objects that are XML nodes.
-	 */
-	public boolean isExcluded(Object obj, String attr, Object value,
-			boolean write)
-	{
-		return exclude.contains(attr)
-				|| (write && attr.equals("value") && value instanceof Node && ((Node) value)
-						.getNodeType() == Node.ELEMENT_NODE);
-	}
+  /**
+   * Excludes user objects that are XML nodes.
+   */
+  public boolean isExcluded(Object obj, String attr, Object value,
+                            boolean write)
+  {
+    return exclude.contains(attr)
+           || (write && attr.equals("value") && value instanceof Node && ((Node) value)
+               .getNodeType() == Node.ELEMENT_NODE);
+  }
 
-	/**
-	 * Encodes an mxCell and wraps the XML up inside the
-	 * XML of the user object (inversion).
-	 */
-	public Node afterEncode(mxCodec enc, Object obj, Node node)
-	{
-		if (obj instanceof mxCell)
-		{
-			mxCell cell = (mxCell) obj;
+  /**
+   * Encodes an mxCell and wraps the XML up inside the
+   * XML of the user object (inversion).
+   */
+  public Node afterEncode(mxCodec enc, Object obj, Node node)
+  {
+    if (obj instanceof mxCell)
+    {
+      mxCell cell = (mxCell) obj;
 
-			if (cell.getValue() instanceof Node)
-			{
-				// Wraps the graphical annotation up in the
-				// user object (inversion) by putting the
-				// result of the default encoding into
-				// a clone of the user object (node type 1)
-				// and returning this cloned user object.
-				Element tmp = (Element) node;
-				node = enc.getDocument().importNode((Node) cell.getValue(),
-						true);
-				node.appendChild(tmp);
+      if (cell.getValue() instanceof Node)
+      {
+        // Wraps the graphical annotation up in the
+        // user object (inversion) by putting the
+        // result of the default encoding into
+        // a clone of the user object (node type 1)
+        // and returning this cloned user object.
+        Element tmp = (Element) node;
+        node = enc.getDocument().importNode((Node) cell.getValue(),
+                                            true);
+        node.appendChild(tmp);
+        // Moves the id attribute to the outermost
+        // XML node, namely the node which denotes
+        // the object boundaries in the file.
+        String id = tmp.getAttribute("id");
+        ((Element) node).setAttribute("id", id);
+        tmp.removeAttribute("id");
+      }
+    }
 
-				// Moves the id attribute to the outermost
-				// XML node, namely the node which denotes
-				// the object boundaries in the file.
-				String id = tmp.getAttribute("id");
-				((Element) node).setAttribute("id", id);
-				tmp.removeAttribute("id");
-			}
-		}
+    return node;
+  }
 
-		return node;
-	}
+  /**
+   * Decodes an mxCell and uses the enclosing XML node as
+   * the user object for the cell (inversion).
+   */
+  public Node beforeDecode(mxCodec dec, Node node, Object obj)
+  {
+    Element inner = (Element) node;
 
-	/**
-	 * Decodes an mxCell and uses the enclosing XML node as
-	 * the user object for the cell (inversion).
-	 */
-	public Node beforeDecode(mxCodec dec, Node node, Object obj)
-	{
-		Element inner = (Element) node;
+    if (obj instanceof mxCell)
+    {
+      mxCell cell = (mxCell) obj;
+      String className = mxCodecRegistry.getName(template);
 
-		if (obj instanceof mxCell)
-		{
-			mxCell cell = (mxCell) obj;
-			String className = mxCodecRegistry.getName(template);
+      if (!node.getNodeName().equals(className))
+      {
+        // Passes the inner graphical annotation node to the
+        // object codec for further processing of the cell.
+        Node tmp = inner.getElementsByTagName(className).item(0);
 
-			if (!node.getNodeName().equals(className))
-			{
-				// Passes the inner graphical annotation node to the
-				// object codec for further processing of the cell.
-				Node tmp = inner.getElementsByTagName(className).item(0);
+        if (tmp != null && tmp.getParentNode() == node)
+        {
+          inner = (Element) tmp;
+          // Removes annotation and whitespace from node
+          Node tmp2 = tmp.getPreviousSibling();
 
-				if (tmp != null && tmp.getParentNode() == node)
-				{
-					inner = (Element) tmp;
+          while (tmp2 != null && tmp2.getNodeType() == Node.TEXT_NODE)
+          {
+            Node tmp3 = tmp2.getPreviousSibling();
 
-					// Removes annotation and whitespace from node
-					Node tmp2 = tmp.getPreviousSibling();
+            if (tmp2.getTextContent().trim().length() == 0)
+            {
+              tmp2.getParentNode().removeChild(tmp2);
+            }
 
-					while (tmp2 != null && tmp2.getNodeType() == Node.TEXT_NODE)
-					{
-						Node tmp3 = tmp2.getPreviousSibling();
+            tmp2 = tmp3;
+          }
 
-						if (tmp2.getTextContent().trim().length() == 0)
-						{
-							tmp2.getParentNode().removeChild(tmp2);
-						}
+          // Removes more whitespace
+          tmp2 = tmp.getNextSibling();
 
-						tmp2 = tmp3;
-					}
+          while (tmp2 != null && tmp2.getNodeType() == Node.TEXT_NODE)
+          {
+            Node tmp3 = tmp2.getPreviousSibling();
 
-					// Removes more whitespace
-					tmp2 = tmp.getNextSibling();
+            if (tmp2.getTextContent().trim().length() == 0)
+            {
+              tmp2.getParentNode().removeChild(tmp2);
+            }
 
-					while (tmp2 != null && tmp2.getNodeType() == Node.TEXT_NODE)
-					{
-						Node tmp3 = tmp2.getPreviousSibling();
+            tmp2 = tmp3;
+          }
 
-						if (tmp2.getTextContent().trim().length() == 0)
-						{
-							tmp2.getParentNode().removeChild(tmp2);
-						}
+          tmp.getParentNode().removeChild(tmp);
+        }
+        else
+        {
+          inner = null;
+        }
 
-						tmp2 = tmp3;
-					}
+        // Creates the user object out of the XML node
+        Element value = (Element) node.cloneNode(true);
+        cell.setValue(value);
+        String id = value.getAttribute("id");
 
-					tmp.getParentNode().removeChild(tmp);
-				}
-				else
-				{
-					inner = null;
-				}
+        if (id != null)
+        {
+          cell.setId(id);
+          value.removeAttribute("id");
+        }
+      }
+      else
+      {
+        cell.setId(((Element) node).getAttribute("id"));
+      }
 
-				// Creates the user object out of the XML node
-				Element value = (Element) node.cloneNode(true);
-				cell.setValue(value);
-				String id = value.getAttribute("id");
+      // Preprocesses and removes all Id-references
+      // in order to use the correct encoder (this)
+      // for the known references to cells (all).
+      if (inner != null && idrefs != null)
+      {
+        Iterator<String> it = idrefs.iterator();
 
-				if (id != null)
-				{
-					cell.setId(id);
-					value.removeAttribute("id");
-				}
-			}
-			else
-			{
-				cell.setId(((Element) node).getAttribute("id"));
-			}
+        while (it.hasNext())
+        {
+          String attr = it.next();
+          String ref = inner.getAttribute(attr);
 
-			// Preprocesses and removes all Id-references
-			// in order to use the correct encoder (this)
-			// for the known references to cells (all).
-			if (inner != null && idrefs != null)
-			{
-				Iterator<String> it = idrefs.iterator();
+          if (ref != null && ref.length() > 0)
+          {
+            inner.removeAttribute(attr);
+            Object object = dec.objects.get(ref);
 
-				while (it.hasNext())
-				{
-					String attr = it.next();
-					String ref = inner.getAttribute(attr);
+            if (object == null)
+            {
+              object = dec.lookup(ref);
+            }
 
-					if (ref != null && ref.length() > 0)
-					{
-						inner.removeAttribute(attr);
-						Object object = dec.objects.get(ref);
+            if (object == null)
+            {
+              // Needs to decode forward reference
+              Node element = dec.getElementById(ref);
 
-						if (object == null)
-						{
-							object = dec.lookup(ref);
-						}
+              if (element != null)
+              {
+                mxObjectCodec decoder = mxCodecRegistry
+                                        .getCodec(element.getNodeName());
 
-						if (object == null)
-						{
-							// Needs to decode forward reference
-							Node element = dec.getElementById(ref);
+                if (decoder == null)
+                {
+                  decoder = this;
+                }
 
-							if (element != null)
-							{
-								mxObjectCodec decoder = mxCodecRegistry
-										.getCodec(element.getNodeName());
+                object = decoder.decode(dec, element);
+              }
+            }
 
-								if (decoder == null)
-								{
-									decoder = this;
-								}
+            setFieldValue(obj, attr, object);
+          }
+        }
+      }
+    }
 
-								object = decoder.decode(dec, element);
-							}
-						}
-
-						setFieldValue(obj, attr, object);
-					}
-				}
-			}
-		}
-
-		return inner;
-	}
+    return inner;
+  }
 
 }

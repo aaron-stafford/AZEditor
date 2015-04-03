@@ -1,3 +1,13 @@
+Editor for AZEngine
+
+Source code available at: https://github.com/aaron-stafford/AZEditor
+
+The code was originally developed as a project on google code:
+
+https://code.google.com/p/scxmlgui/
+
+These are the original notes:
+
 Editor for SCXML networks
 Initially coded by Fabrizio Morbini starting from the
 Graph Editor example contained in the JGraphX library.

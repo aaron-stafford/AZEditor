@@ -159,7 +159,7 @@ public class SCXMLEditorMenuBar extends JMenuBar
 		{
 			public void actionPerformed(ActionEvent e) {
 				Window parent;
-				String svn="";
+				String sourceRevision="";
 				String info="Editor for SCXML networks\n"+
 						"Initially coded by Fabrizio Morbini starting from the\n"+
 						"Graph Editor example contained in the JGraphX library.\n\n"+
@@ -170,11 +170,11 @@ public class SCXMLEditorMenuBar extends JMenuBar
 				try {
 					
 					info=mxUtils.readFile(mxUtils.getURIForResourceNamed("info.txt"));
-					svn=mxUtils.readFile(mxUtils.getURIForResourceNamed("svn.version"));
+					sourceRevision=mxUtils.readFile(mxUtils.getURIForResourceNamed("git.version"));
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
-				TextDialog a = new TextDialog(parent=SwingUtilities.windowForComponent(editor),"About",info+"\n"+svn,ModalityType.TOOLKIT_MODAL);
+				TextDialog a = new TextDialog(parent=SwingUtilities.windowForComponent(editor),"About",info+"\n"+sourceRevision,ModalityType.TOOLKIT_MODAL);
 				a.setResizable(false);
 			}
 		});

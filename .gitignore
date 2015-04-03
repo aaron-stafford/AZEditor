@@ -1,3 +1,5 @@
 git.version
 fsm-editor/bin
 jgraphx/bin
+.DS_Store
+tags

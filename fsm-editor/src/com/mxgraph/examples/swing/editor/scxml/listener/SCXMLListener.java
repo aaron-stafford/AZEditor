@@ -33,6 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JCheckBox;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
@@ -63,6 +64,16 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	private static final int PRESTARTING = 3;
 	private static final int LOADING = 4;
 
+	// Precompiled patterns for matching incoming events.
+	final Pattern startsWithValidNumber = Pattern.compile("^[\\s]*([01234567])[\\s]+(.+)[\\s]*$");
+	final Pattern basicEdge = Pattern.compile("^(.+)[\\s]+->[\\s]+(.+)$");
+	final Pattern advancedEdge = Pattern.compile("^(.+)[\\s]+(.+)[\\s]+->[\\s]+(.+)$");
+	final Pattern advancedNode = Pattern.compile("^(.+)[\\s]+(.+)[\\s]*$");
+
+	// Flag for specifying whether or not events should be filtered based on
+	// the diagram name.
+	private boolean useEventFiltering = true;
+
 	private JList list;
 	private DefaultListModel listModel;
 	private JScrollPane listScrollPane;
@@ -71,6 +82,7 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	private JButton saveButton,loadButton,reloadButton;
 	private JButton startStopButton;
 	private JTextField port;
+	private JCheckBox eventFilterCheckBox;
 
 	ServerSocket socket = null;
 	private Socket clientSocket;
@@ -126,6 +138,12 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 		reloadButtonPane.setLayout(new BoxLayout(reloadButtonPane,BoxLayout.LINE_AXIS));
 		reloadButtonPane.add(reloadButton);
 		
+		eventFilterCheckBox = new JCheckBox("Event filtering");
+		eventFilterCheckBox.setSelected(true);
+		eventFilterCheckBox.addActionListener(this);
+		eventFilterCheckBox.setActionCommand("eventFilter");
+		reloadButtonPane.add(eventFilterCheckBox);
+
 		JPanel startStopButtonPane = new JPanel();
 		startStopButtonPane.setLayout(new BoxLayout(startStopButtonPane,BoxLayout.LINE_AXIS));
 		startStopButtonPane.add(portLabel);
@@ -360,6 +378,8 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 			for (int i=0;i<size;i++) {
 				refreshEvent((SCXMLEvent)listModel.get(i),i);
 			}
+		} else if (cmd.equals("eventFilter")) {
+			useEventFiltering = eventFilterCheckBox.isSelected();
 		}
 	}
 
@@ -568,6 +588,12 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	public void addEvent(String command) {
 		try {
 			SCXMLEvent event = new SCXMLEvent(command);
+
+			if(useEventFiltering && !event.getDiagramName().equals(SCXMLListener.this.editor.getCurrentFile().getName()))
+			{
+				return;
+			}
+
 			int lastIndex = listModel.size()-1;
 			int selectedIndex = list.getSelectedIndex();
 			listModel.addElement(event);
@@ -621,35 +647,137 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	}
 
 	public class SCXMLEvent {
-		static final int SHOWNODE=1;
 		static final int HIDENODE=0;
-		static final int SHOWEDGE=3;
+		static final int SHOWNODE=1;
 		static final int HIDEEDGE=2;
+		static final int SHOWEDGE=3;
+		static final int HIDENODEADV=4;
+		static final int SHOWNODEADV=5;
+		static final int HIDEEDGEADV=6;
+		static final int SHOWEDGEADV=7;
 		static final int UNK=20;
 		int command;
 		mxCell arg1,arg2;
 		String arg1n,arg2n;
+		String diagramName = "";
 
 		public SCXMLEvent(String command) throws Exception {
-			Pattern nodep = Pattern.compile("^[\\s]*([01])[\\s]+(.+)[\\s]*$");
-			Pattern edgep = Pattern.compile("^[\\s]*([23])[\\s]+(.+)[\\s]+->[\\s]+(.+)[\\s]*$");
-			Matcher m = nodep.matcher(command);
+			Matcher m = startsWithValidNumber.matcher(command);
 			if (m.matches() && (m.groupCount()==2)) {
 				this.command=Integer.parseInt(m.group(1));
-				arg1n=m.group(2);
-				arg1 = graphComponent.getSCXMLNodeForID(arg1n);
-			} else {
-				m = edgep.matcher(command);
-				if (m.matches() && (m.groupCount()==3)) {
-					this.command=Integer.parseInt(m.group(1));
-					arg1n=m.group(2);
-					arg2n=m.group(3);
-					arg1=graphComponent.getSCXMLNodeForID(arg1n);
-					arg2=graphComponent.getSCXMLNodeForID(arg2n);
-				} else {
-					this.command=UNK;
-					throw new Exception("error in received command");
-				}
+                switch(this.command)
+                {
+                    case HIDENODE:
+				        arg1n = m.group(2);
+				        arg1 = graphComponent.getSCXMLNodeForID(arg1n);
+                        break; 
+                    case SHOWNODE:
+				        arg1n = m.group(2);
+				        arg1 = graphComponent.getSCXMLNodeForID(arg1n);
+                        break; 
+                    case HIDEEDGE:
+			            m = basicEdge.matcher(m.group(2));
+			            if (m.matches() && (m.groupCount()==2))
+                        {
+					        arg1n=m.group(1);
+        					arg2n=m.group(2);
+	        				arg1=graphComponent.getSCXMLNodeForID(arg1n);
+		        			arg2=graphComponent.getSCXMLNodeForID(arg2n);
+                        }
+                        else 
+                        {
+					        this.command=UNK;
+			        		throw new Exception("error in received command. Received command was: " + command);
+				        }
+                        break; 
+                    case SHOWEDGE:
+			            m = basicEdge.matcher(m.group(2));
+			            if (m.matches() && (m.groupCount()==2))
+                        {
+					        arg1n=m.group(1);
+        					arg2n=m.group(2);
+	        				arg1=graphComponent.getSCXMLNodeForID(arg1n);
+		        			arg2=graphComponent.getSCXMLNodeForID(arg2n);
+                        }
+                        else 
+                        {
+					        this.command=UNK;
+			        		throw new Exception("error in received command. Received command was: " + command);
+				        }
+                        break; 
+                    case HIDENODEADV:
+                        this.command = HIDENODE;
+			            m = advancedNode.matcher(m.group(2));
+			            if (m.matches() && (m.groupCount()==2))
+                        {
+					        diagramName=m.group(1);
+					        arg1n=m.group(2);
+	        				arg1=graphComponent.getSCXMLNodeForID(arg1n);
+                        }
+                        else 
+                        {
+					        this.command=UNK;
+			        		throw new Exception("error in received command. Received command was: " + command);
+				        }
+                        break;
+                    case SHOWNODEADV:
+                        this.command = SHOWNODE;
+			            m = advancedNode.matcher(m.group(2));
+			            if (m.matches() && (m.groupCount()==2))
+                        {
+					        diagramName=m.group(1);
+					        arg1n=m.group(2);
+	        				arg1=graphComponent.getSCXMLNodeForID(arg1n);
+                        }
+                        else 
+                        {
+					        this.command=UNK;
+			        		throw new Exception("error in received command. Received command was: " + command);
+				        }
+                        break; 
+                    case HIDEEDGEADV:
+                        this.command = HIDEEDGE;
+			            m = advancedEdge.matcher(m.group(2));
+			            if (m.matches() && (m.groupCount()==3))
+                        {
+					        diagramName=m.group(1);
+					        arg1n=m.group(2);
+        					arg2n=m.group(3);
+	        				arg1=graphComponent.getSCXMLNodeForID(arg1n);
+		        			arg2=graphComponent.getSCXMLNodeForID(arg2n);
+                        }
+                        else 
+                        {
+					        this.command=UNK;
+			        		throw new Exception("error in received command. Received command was: " + command);
+				        }
+                        break; 
+                    case SHOWEDGEADV:
+                        this.command = SHOWEDGE;
+			            m = advancedEdge.matcher(m.group(2));
+			            if (m.matches() && (m.groupCount()==3))
+                        {
+					        diagramName=m.group(1);
+					        arg1n=m.group(2);
+        					arg2n=m.group(3);
+	        				arg1=graphComponent.getSCXMLNodeForID(arg1n);
+		        			arg2=graphComponent.getSCXMLNodeForID(arg2n);
+                        }
+                        else 
+                        {
+					        this.command=UNK;
+			        		throw new Exception("error in received command. Received command was: " + command);
+				        }
+                        break; 
+                    default:
+				        this.command=UNK;
+			       		throw new Exception("error in received command. Received command was: " + command);
+                }
+            }
+            else
+            {
+				this.command=UNK;
+				throw new Exception("error in received command. Received command was: " + command);
 			}
 		}
 
@@ -698,17 +826,23 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 
 		@Override
 		public String toString() {
+            String diagram = "(" + diagramName + ")";
 			switch (command) {
 			case SHOWNODE:
-				return "show node "+arg1n;
+				return diagram + " show node "+arg1n;
 			case SHOWEDGE:
-				return "show edge "+arg1n+"->"+arg2n;
+				return diagram + " show edge "+arg1n+"->"+arg2n;
 			case HIDENODE:
-				return "hide node "+arg1n;
+				return diagram + " hide node "+arg1n;
 			case HIDEEDGE:
-				return "hide edge "+arg1n+"->"+arg2n;
+				return diagram + " hide edge "+arg1n+"->"+arg2n;
 			}
 			return "[SCXMLEvent error]";
 		}
+
+        public String getDiagramName()
+        {
+            return diagramName;
+        }
 	}
 }

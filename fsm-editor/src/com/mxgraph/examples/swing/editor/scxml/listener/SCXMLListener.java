@@ -50,9 +50,10 @@ import com.mxgraph.examples.swing.editor.scxml.SCXMLGraphComponent;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.model.mxIGraphModel;
-import com.mxgraph.swing.util.CellSelector;
 import com.mxgraph.util.mxResources;
 import com.mxgraph.util.mxUtils;
+
+import com.az.AnimatedCellSelector;
 
 public class SCXMLListener extends JDialog implements ListSelectionListener, WindowListener, ActionListener, DocumentListener {
 	private int status;
@@ -78,7 +79,7 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	private mxIGraphModel model;
 	private SCXMLGraphEditor editor;
 	
-	private CellSelector cellHighlighter;
+	private AnimatedCellSelector cellHighlighter;
 
 	public SCXMLListener(JFrame parent, SCXMLGraphEditor editor) {
 		super(parent,"SCXML Listener");
@@ -88,7 +89,8 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 		model=graphComponent.getGraph().getModel();
 		this.editor=editor;
 
-		cellHighlighter=new CellSelector(graphComponent);
+		boolean centerOnHighlightedNode = false;
+		cellHighlighter=new AnimatedCellSelector(graphComponent, centerOnHighlightedNode);
 
 		addWindowListener(this);
 		JPanel contentPane = new JPanel(new BorderLayout());

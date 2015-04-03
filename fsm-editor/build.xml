@@ -31,7 +31,7 @@
 		<!-- 	<property name="myclasspath" refid="DMS.archives"/> -->
 		<!-- 	<echo message="Classpath = ${myclasspath}"/> -->
 		<mkdir dir="${FSM.binaries}"/>
-		<javac srcdir="${FSM.sources}" destdir="${FSM.binaries}" debug="true">
+		<javac target="1.6" source="1.6" srcdir="${FSM.sources}" destdir="${FSM.binaries}" debug="true">
 			<classpath>
 				<path refid="FSM.archives"/>
 			</classpath>

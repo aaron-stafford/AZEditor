@@ -21,7 +21,7 @@
 		<!-- 	<property name="myclasspath" refid="DMS.archives"/> -->
 		<!-- 	<echo message="Classpath = ${myclasspath}"/> -->
 		<mkdir dir="${JGRAPHX.binaries}"/>
-		<javac srcdir="${JGRAPHX.sources}" destdir="${JGRAPHX.binaries}" debug="true">
+		<javac target="1.6" source="1.6" srcdir="${JGRAPHX.sources}" destdir="${JGRAPHX.binaries}" debug="true">
 		</javac>
 		<copy todir="${JGRAPHX.binaries}">
 			<fileset dir="${JGRAPHX.sources}">

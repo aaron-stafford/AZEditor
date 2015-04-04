@@ -702,15 +702,12 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 
         while (gui.getStatus() == STARTED)
         {
-          if (in.ready())
-          {
-            inputLine = in.readLine();
-            out.write(ACK);
+          inputLine = in.readLine();
+          out.write(ACK);
 
-            if (inputLine != null)
-            {
-              gui.addEvent(inputLine);
-            }
+          if (inputLine != null)
+          {
+            gui.addEvent(inputLine);
           }
         }
       }

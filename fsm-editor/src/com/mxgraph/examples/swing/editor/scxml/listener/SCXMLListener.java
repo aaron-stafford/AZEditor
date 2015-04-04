@@ -118,7 +118,7 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
   private void populateGUI(JPanel contentPane)
   {
     JLabel portLabel = new JLabel("port:");
-    port = new JTextField(10);
+    port = new JTextField(mxResources.get("defaultListenerPort"), 10);
     port.addActionListener(this);
     port.getDocument().addDocumentListener(this);
     startStopButton = new JButton(mxResources.get("startSCXMLListener"));
@@ -539,8 +539,16 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
       status = PRESTARTING;
       startStopButton.setActionCommand("start");
       startStopButton.setText(mxResources.get("startSCXMLListener"));
-      startStopButton.setEnabled(false);
-      port.setText("");
+
+      if (port.getText().length() > 0)
+      {
+        startStopButton.setEnabled(true);
+      }
+      else
+      {
+        startStopButton.setEnabled(false);
+      }
+
       port.setEnabled(true);
       list.setEnabled(false);
       saveButton.setEnabled(false);

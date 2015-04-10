@@ -49,12 +49,16 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JTree;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.filechooser.FileFilter;
 import javax.xml.bind.JAXBContext;
 
@@ -119,9 +123,12 @@ import com.mxgraph.util.mxUndoableEdit.mxUndoableChange;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxMultiplicity;
 
+import com.az.XMLTreeModel;
+import com.az.XMLTreeNode;
 
 public class SCXMLGraphEditor extends JPanel
 {
+  private XMLTreeModel azProjectModel = null;
   public Preferences preferences = Preferences.userRoot();
   private ValidationWarningStatusPane validationStatus;
   private ImportExportPicker iep;
@@ -1250,12 +1257,40 @@ public class SCXMLGraphEditor extends JPanel
     private JList scxmlErrorsList;
     private final DefaultListModel listModel = new DefaultListModel();
     private ListCellSelector listSelectorHandler;
+    private JTree tree;
 
     public ValidationWarningStatusPane()
     {
       //Create the list and put it in a scroll pane.
-      scxmlErrorsList = buildValidationWarningGUI();
       setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+      azProjectModel = new XMLTreeModel();
+
+      tree = new JTree(azProjectModel);
+      tree.addTreeSelectionListener(new TreeSelectionListener()
+      {
+        public void valueChanged(TreeSelectionEvent e)
+        {
+          XMLTreeNode node = (XMLTreeNode)
+                             tree.getLastSelectedPathComponent();
+
+          /* if nothing is selected */
+          if (node == null)
+          {
+            return;
+          }
+
+          String diagram = node.getDiagram();
+
+          if (diagram != null && !diagram.equals(""))
+          {
+            OpenAction open = new OpenAction(new File(node.getDiagram()));
+            open.actionPerformed(new ActionEvent(SCXMLGraphEditor.this, 0, ""));
+          }
+        }
+      });
+
+      add(new JScrollPane(tree));
+      scxmlErrorsList = buildValidationWarningGUI();
       add(new JLabel("Validation errors:"));
       add(new JScrollPane(scxmlErrorsList));
       listSelectorHandler = new ValidationCellSelector(scxmlErrorsList, graphComponent);
@@ -1934,5 +1969,33 @@ public class SCXMLGraphEditor extends JPanel
   public void setRestrictedStatesConfig(SCXMLConstraints restrictedStatesConfig)
   {
     this.restrictedStatesConfig = restrictedStatesConfig;
+  }
+
+  /**
+   *
+   * @param e
+   * @return Returns the graph for the given action event.
+   */
+  public static final SCXMLGraphEditor getEditor(ActionEvent e)
+  {
+    if (e.getSource() instanceof Component)
+    {
+      Component component = (Component) e.getSource();
+
+      while (component != null
+             && !(component instanceof SCXMLGraphEditor))
+      {
+        component = component.getParent();
+      }
+
+      return (SCXMLGraphEditor) component;
+    }
+
+    return null;
+  }
+
+  public XMLTreeModel getProjectModel()
+  {
+    return azProjectModel;
   }
 }

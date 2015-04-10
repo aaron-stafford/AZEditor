@@ -38,6 +38,8 @@ import com.mxgraph.util.mxResources;
 import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
 
+import com.az.OpenProjectAction;
+
 public class SCXMLEditorMenuBar extends JMenuBar
 {
 
@@ -210,6 +212,8 @@ public class SCXMLEditorMenuBar extends JMenuBar
     menuItem.setSelected(ToggleIgnoreStoredLayout.isSelected(editor));
     menu.add(menuItem);
     editor.setIgnoreStoredLayoutMenu(menuItem);
+    menu.addSeparator();
+    menu.add(editor.bind(mxResources.get("openProject"), new OpenProjectAction()));
     menu.addSeparator();
     menu.add(editor.bind(mxResources.get("save"), new SaveAction(false), "/com/mxgraph/examples/swing/images/save.gif"));
     menu.add(editor.bind(mxResources.get("saveAs"), new SaveAction(true), "/com/mxgraph/examples/swing/images/saveas.gif"));

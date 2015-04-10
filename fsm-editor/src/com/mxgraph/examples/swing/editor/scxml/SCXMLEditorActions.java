@@ -59,30 +59,6 @@ import com.mxgraph.view.mxGraphView;
  */
 public class SCXMLEditorActions
 {
-
-  /**
-   *
-   * @param e
-   * @return Returns the graph for the given action event.
-   */
-  public static final SCXMLGraphEditor getEditor(ActionEvent e)
-  {
-    if (e.getSource() instanceof Component)
-    {
-      Component component = (Component) e.getSource();
-
-      while (component != null
-             && !(component instanceof SCXMLGraphEditor))
-      {
-        component = component.getParent();
-      }
-
-      return (SCXMLGraphEditor) component;
-    }
-
-    return null;
-  }
-
   public static class AddAction extends AbstractAction
   {
     private Point pos;
@@ -97,7 +73,7 @@ public class SCXMLEditorActions
 
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraph graph = editor.getGraphComponent().getGraph();
       SCXMLGraphComponent c = (SCXMLGraphComponent) editor.getGraphComponent();
       SCXMLNode value = (SCXMLNode)editor.getCurrentFileIO().buildNodeValue();
@@ -139,7 +115,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       JFrame frame = (JFrame) SwingUtilities.windowForComponent(editor);
       mxIGraphModel model = editor.getGraphComponent().getGraph().getModel();
       model.beginUpdate();
@@ -173,7 +149,7 @@ public class SCXMLEditorActions
     public void actionPerformed(ActionEvent e)
     {
       assert(cell.isEdge());
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       JFrame frame = (JFrame) SwingUtilities.windowForComponent(editor);
       mxIGraphModel model = editor.getGraphComponent().getGraph().getModel();
       model.beginUpdate();
@@ -210,7 +186,7 @@ public class SCXMLEditorActions
     public void actionPerformed(ActionEvent e)
     {
       assert(cell.isEdge());
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraphComponent gc = editor.getGraphComponent();
       mxGraphView gv = gc.getGraph().getView();
       mxCellState cs = gv.getState(cell);
@@ -256,7 +232,7 @@ public class SCXMLEditorActions
     public void actionPerformed(ActionEvent e)
     {
       assert(cell.isEdge());
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraphComponent gc = editor.getGraphComponent();
       mxCellState cs = gc.getGraph().getView().getState(cell);
       //List<mxPoint> pts = cs.getAbsolutePoints();
@@ -287,7 +263,7 @@ public class SCXMLEditorActions
     public void actionPerformed(ActionEvent e)
     {
       assert(cell.isVertex());
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       JFrame frame = (JFrame) SwingUtilities.windowForComponent(editor);
       mxIGraphModel model = editor.getGraphComponent().getGraph().getModel();
       model.beginUpdate();
@@ -318,7 +294,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraph graph = editor.getGraphComponent().getGraph();
       assert(cell.isVertex());
       SCXMLNode n = (SCXMLNode) cell.getValue();
@@ -348,7 +324,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraph graph = editor.getGraphComponent().getGraph();
       assert(cell.isEdge());
       SCXMLEdge n = (SCXMLEdge) cell.getValue();
@@ -377,7 +353,7 @@ public class SCXMLEditorActions
 
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       boolean ignoreStoredLayout = isSelected(editor);
       editor.preferences.putBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, !ignoreStoredLayout);
       editor.updateIgnoreStoredLayoutMenuState();
@@ -394,7 +370,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraph graph = editor.getGraphComponent().getGraph();
       assert(cell.isVertex());
       SCXMLNode n = (SCXMLNode) cell.getValue();
@@ -424,7 +400,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraph graph = editor.getGraphComponent().getGraph();
       assert(cell.isVertex());
       SCXMLNode n = (SCXMLNode) cell.getValue();
@@ -456,7 +432,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       JFrame frame = (JFrame) SwingUtilities.windowForComponent(editor);
       SCXMLGraph graph = editor.getGraphComponent().getGraph();
       assert(cell.isVertex());
@@ -506,7 +482,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraph graph = editor.getGraphComponent().getGraph();
       assert(cell.isVertex());
       SCXMLNode n = (SCXMLNode) cell.getValue();
@@ -537,7 +513,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraph graph = editor.getGraphComponent().getGraph();
       assert(cell.isVertex());
       SCXMLNode n = (SCXMLNode) cell.getValue();
@@ -579,7 +555,7 @@ public class SCXMLEditorActions
     }
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       mxGraph graph = editor.getGraphComponent().getGraph();
       assert(cell.isVertex());
       SCXMLNode n = (SCXMLNode) cell.getValue();
@@ -651,7 +627,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
 
       if (editor != null)
       {
@@ -743,7 +719,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
 
       if (editor != null)
       {
@@ -771,7 +747,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
 
       if (editor != null)
       {
@@ -839,7 +815,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       EditorStatus oldStatus = editor.getStatus();
       editor.setStatus(EditorStatus.LAYOUT);
       editor.getUndoManager().setCollectionMode(true);
@@ -886,7 +862,7 @@ public class SCXMLEditorActions
     public void actionPerformed(ActionEvent e)
     {
       //Memory leak fix
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       SCXMLGraphComponent gc = editor.getGraphComponent();
       SCXMLGraph graph = (SCXMLGraph) gc.getGraph();
       gc.clearSCXMLNodes();
@@ -911,7 +887,7 @@ public class SCXMLEditorActions
       }
       else
       {
-        openInEditor(getEditor(e));
+        openInEditor(SCXMLGraphEditor.getEditor(e));
       }
     }
 
@@ -994,7 +970,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       SCXMLGraphComponent gc = editor.getGraphComponent();
       SCXMLGraph graph = gc.getGraph();
 
@@ -1036,7 +1012,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       SCXMLSearchTool st = editor.getSCXMLSearchTool();
       st.showTool((JFrame) SwingUtilities.windowForComponent(editor));
     }
@@ -1050,7 +1026,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       SCXMLListener scxmlListener = editor.getSCXMLListener();
       scxmlListener.showTool();
     }
@@ -1075,7 +1051,7 @@ public class SCXMLEditorActions
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       SCXMLGraph graph = editor.getGraphComponent().getGraph();
 
       try
@@ -1127,7 +1103,7 @@ public class SCXMLEditorActions
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       SCXMLGraph graph = editor.getGraphComponent().getGraph();
       mxIGraphModel model = graph.getModel();
 
@@ -1171,7 +1147,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       editor.getGraphComponent().zoomIn();
     }
   }
@@ -1182,7 +1158,7 @@ public class SCXMLEditorActions
      */
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       editor.getGraphComponent().zoomOut();
     }
   }
@@ -1226,7 +1202,7 @@ public class SCXMLEditorActions
     @Override
     public void actionPerformed(ActionEvent e)
     {
-      SCXMLGraphEditor editor = getEditor(e);
+      SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
       SCXMLGraphComponent graphComponent = editor.getGraphComponent();
       SCXMLGraph graph = graphComponent.getGraph();
       Object[] cells = graph.getDeletableCells(graph.addAllEdges(graph.getSelectionCells()));

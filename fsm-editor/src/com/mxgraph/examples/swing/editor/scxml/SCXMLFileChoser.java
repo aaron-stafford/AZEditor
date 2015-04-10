@@ -21,11 +21,32 @@ public class SCXMLFileChoser extends JFileChooser
   {
     ac = new FileChoserCustomControls(editor);
     String dirOfLastOpenedFile = editor.menuBar.getLastOpenedDir();
-    String wd = (lastDir != null) ? lastDir : ((editor.getCurrentFile() != null) ? editor.getCurrentFile().getParent() : ((dirOfLastOpenedFile != null) ? dirOfLastOpenedFile : System.getProperty("user.dir")));
+    String wd = "";
+    if(lastDir != null)
+    {
+      wd = lastDir;
+    }
+    else
+    {
+      if(editor.getCurrentFile() != null && editor.getCurrentFile().getParent() != null)
+      {
+        wd = editor.getCurrentFile().getParent();
+      }
+      else
+      {
+        if(dirOfLastOpenedFile != null)
+        {
+          wd = dirOfLastOpenedFile;
+        }
+        else
+        {
+         wd = System.getProperty("user.dir");
+        }
+      }
+    }
     setCurrentDirectory(new File(wd));
     ImportExportPicker fileIO = editor.getIOPicker();
     fileIO.addImportFiltersToFileChooser(this);
-
     if (file != null)
     {
       setSelectedFile(file);

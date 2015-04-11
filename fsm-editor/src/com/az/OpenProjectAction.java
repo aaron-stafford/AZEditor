@@ -5,8 +5,10 @@ import java.io.File;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.mxgraph.examples.swing.SCXMLGraphEditor;
+import com.mxgraph.util.mxResources;
 
 /**
  * An action for opening an az project.
@@ -54,6 +56,10 @@ public class OpenProjectAction extends AbstractAction
     }
 
     JFileChooser fc = new JFileChooser(wd);
+    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+      mxResources.get("azProjectFilterDescription"),
+      mxResources.get("azProjectFileExtension"));
+    fc.setFileFilter(filter);
     int rc = fc.showOpenDialog(null);
 
     if (rc == JFileChooser.APPROVE_OPTION)

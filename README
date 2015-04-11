@@ -19,3 +19,19 @@ Launching the editor
 The editor can be launched from the command line with the following command:
 
 > java -jar extra/fsm-editor.jar
+
+Prior to committing
+===================
+
+Run:
+
+> astyle -R *.java
+
+The formatting style used is taken from .astylerc you will need to put this
+file in a place where astyle can read it, eg; $HOME/.astylerc 
+
+See:
+
+> astyle -h
+
+for more info.

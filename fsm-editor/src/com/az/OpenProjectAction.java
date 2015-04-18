@@ -25,6 +25,12 @@ public class OpenProjectAction extends AbstractAction
     this.lastDir = null;
   }
 
+  public OpenProjectAction(File file)
+  {
+    this.file = file;
+    this.lastDir = null;
+  }
+
   public void actionPerformed(ActionEvent e)
   {
     SCXMLGraphEditor editor = SCXMLGraphEditor.getEditor(e);
@@ -55,18 +61,25 @@ public class OpenProjectAction extends AbstractAction
       }
     }
 
-    JFileChooser fc = new JFileChooser(wd);
-    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-      mxResources.get("azProjectFilterDescription"),
-      mxResources.get("azProjectFileExtension"));
-    fc.setFileFilter(filter);
-    int rc = fc.showOpenDialog(null);
-
-    if (rc == JFileChooser.APPROVE_OPTION)
+    if (file == null)
     {
-      File file = fc.getSelectedFile();
-      editor.getProjectModel().loadProjectFile(fc.getSelectedFile());
-      lastDir = fc.getSelectedFile().getParent();
+      JFileChooser fc = new JFileChooser(wd);
+      FileNameExtensionFilter filter = new FileNameExtensionFilter(
+        mxResources.get("azProjectFilterDescription"),
+        mxResources.get("azProjectFileExtension"));
+      fc.setFileFilter(filter);
+      int rc = fc.showOpenDialog(null);
+
+      if (rc == JFileChooser.APPROVE_OPTION)
+      {
+        File file = fc.getSelectedFile();
+      }
+    }
+
+    if (file != null)
+    {
+      editor.getProjectModel().loadProjectFile(file);
+      lastDir = file.getParent();
     }
   }
 }

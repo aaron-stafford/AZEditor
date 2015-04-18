@@ -123,6 +123,7 @@ import com.mxgraph.util.mxUndoableEdit.mxUndoableChange;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxMultiplicity;
 
+import com.az.OpenProjectAction;
 import com.az.XMLTreeModel;
 import com.az.XMLTreeNode;
 
@@ -197,7 +198,7 @@ public class SCXMLGraphEditor extends JPanel
   protected IImportExport currentFileIOMethod;
   protected Long lastModifiedDate;
   private static boolean backupEnabled, doLayout;
-  private static String inputFileName, outputFileName, outputFormat;
+  private static String inputFileName, outputFileName, outputFormat, projectFileName;
 
   /*
    * Restricted states configuration
@@ -1713,6 +1714,14 @@ public class SCXMLGraphEditor extends JPanel
   {
     backupEnabled = e;
   }
+  public static void setPresetProject(String projectFileName)
+  {
+    SCXMLGraphEditor.projectFileName = projectFileName;
+  }
+  public static String getPresetProject()
+  {
+    return SCXMLGraphEditor.projectFileName;
+  }
   public static String getPresetInput()
   {
     return inputFileName;
@@ -1777,9 +1786,19 @@ public class SCXMLGraphEditor extends JPanel
         OpenAction open = new OpenAction(new File(input));
         open.actionPerformed(new ActionEvent(editor, 0, ""));
       }
+      else
+      {
+        String projectFileName = getPresetProject();
+
+        if (!StringUtils.isEmptyString(projectFileName))
+        {
+          OpenProjectAction open = new OpenProjectAction(new File(projectFileName));
+          open.actionPerformed(new ActionEvent(editor, 0, ""));
+        }
+      }
     }
   }
-  private static final String BACKUP_OPTION = "b", INPUT_OPTION = "i", OUTPUT_OPTION = "o", FORMAT_OPTION = "t", DOLAYOUT_OPTION = "l", HELP_OPTION = "h";
+  private static final String BACKUP_OPTION = "b", INPUT_OPTION = "i", OUTPUT_OPTION = "o", FORMAT_OPTION = "t", DOLAYOUT_OPTION = "l", HELP_OPTION = "h", PROJECT_OPTION = "p";
   private static final Options options = new Options();
   static
   {
@@ -1789,6 +1808,7 @@ public class SCXMLGraphEditor extends JPanel
     options.addOption(OUTPUT_OPTION, true, "File in which to save the output.");
     options.addOption(FORMAT_OPTION, true, "Format of the output.");
     options.addOption(DOLAYOUT_OPTION, false, "If present it forces a new auto layout.");
+    options.addOption(PROJECT_OPTION, true, "az Project to open.");
   }
   private static void digestCommandLineArguments(String[] args)
   {
@@ -1801,6 +1821,7 @@ public class SCXMLGraphEditor extends JPanel
       if (cmd.hasOption('h'))
       {
         printUsageHelp();
+        System.exit(0);
       }
       else
       {
@@ -1816,7 +1837,7 @@ public class SCXMLGraphEditor extends JPanel
   private static void printUsageHelp()
   {
     HelpFormatter f = new HelpFormatter();
-    f.printHelp("[-" + BACKUP_OPTION + "] [-" + INPUT_OPTION + " input_file] [[-" + OUTPUT_OPTION + " output_file] [-" + FORMAT_OPTION + " {png|jpg|gif|dot}] [-" + DOLAYOUT_OPTION + "]]", options);
+    f.printHelp("[-" + BACKUP_OPTION + "] [-" + INPUT_OPTION + " input_file] [-" + PROJECT_OPTION + " project_file] [[-" + OUTPUT_OPTION + " output_file] [-" + FORMAT_OPTION + " {png|jpg|gif|dot}] [-" + DOLAYOUT_OPTION + "]]", options);
   }
   private static void setConverterModeOptions(CommandLine cmd)
   {
@@ -1837,6 +1858,11 @@ public class SCXMLGraphEditor extends JPanel
         setOutputFormat(cmd.getOptionValue(FORMAT_OPTION));
         setDoLayout(cmd.hasOption(DOLAYOUT_OPTION));
       }
+    }
+
+    if (cmd.hasOption(PROJECT_OPTION))
+    {
+      setPresetProject(cmd.getOptionValue(PROJECT_OPTION));
     }
     else
     {

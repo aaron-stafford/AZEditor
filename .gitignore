@@ -3,3 +3,5 @@ fsm-editor/bin
 jgraphx/bin
 .DS_Store
 tags
+extra/fsm-editor.jar
+lib/jgraphx.jar

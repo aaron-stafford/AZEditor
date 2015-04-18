@@ -72,7 +72,7 @@ public class OpenProjectAction extends AbstractAction
 
       if (rc == JFileChooser.APPROVE_OPTION)
       {
-        File file = fc.getSelectedFile();
+        file = fc.getSelectedFile();
       }
     }
 
